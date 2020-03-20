@@ -1,0 +1,650 @@
+swagger: '2.0'
+info:
+  title: Project Spiderweb Service
+  description: |
+    # Introduction
+    This is the official internal API documentation for the Project Spiderweb Service.
+  contact:
+    name: Austin Glenn
+  version: 1.0.0
+host: NA
+basePath: /api
+schemes:
+- https
+consumes:
+- application/json
+produces:
+- application/json
+securityDefinitions:
+  'Local Development':
+    type: basic
+    description: |
+      When hitting a local run of the service, you may bypass security and instead pass in the following headers:
+      * **X-USER-ID**: the user that you want to behave as.
+security:
+  - 'Local Development': []
+parameters:
+  'pageIdPath':
+    name: pageId
+    in: path
+    description: |
+      ID of the associated page.
+
+      **Example**: `PG_123456789012`
+    required: true
+    type: string
+  'pageDetailIdPath':
+    name: detailId
+    in: path
+    description: |
+      ID of the associated detail.
+
+      **Example**: `DT_123456789012`
+    required: true
+    type: string
+  'propertyKeyPath':
+    name: propertyKey
+    in: path
+    description: |
+      Key of the associated property.
+
+      **Example**: `population`
+    required: true
+    type: string
+  'campaignIdPath':
+    name: campaignId
+    in: path
+    description: |
+      ID of the associated campaign.
+
+      **Example**: `CP_123456789012`
+    required: true
+    type: string
+  'pageTemplateIdPath':
+    name: pageTemplateId
+    in: path
+    description: |
+      ID of the associated page template.
+
+      **Example**: `PGT_12345678901`
+    required: true
+    type: string
+  'nextBatchIdPath':
+    name: nextBatchId
+    in: path
+    description: |
+      If the request is batched, to get the next batch set this parameter based on the response.
+
+      See the response body's **result.nextBatch** property for more details.
+    required: true
+    type: string
+  'pageBody':
+    name: detailObject
+    in: body
+    required: true
+    schema:
+      $ref: 'pages.yaml#/definitions/page'
+  'pageDetailBody':
+    name: detailObject
+    in: body
+    required: true
+    schema:
+      $ref: 'pages.yaml#/definitions/pageDetail'
+  'pagePropertiesBody':
+    name: propertiesList
+    in: body
+    required: true
+    schema:
+      $ref: 'pages.yaml#/definitions/pagePropertyList'
+  'pageDetailIdListBody':
+    name: detailIdList
+    in: body
+    required: true
+    schema:
+      $ref: 'pages.yaml#/definitions/pageDetailIdList'
+  'propertyBody':
+    name: propertyObject
+    in: body
+    required: true
+    schema:
+      $ref: 'properties.yaml#/definitions/property'
+  'campaignBody':
+    name: campaignObject
+    in: body
+    required: true
+    schema:
+      $ref: 'campaigns.yaml#/definitions/campaign'
+  'pageTemplateBody':
+    name: pageTemplateObject
+    in: body
+    required: true
+    schema:
+      $ref: 'pagetemplates.yaml#/definitions/pageTemplate'
+responses:
+  'success':
+    description: Success
+    schema:
+      type: object
+      required:
+      - meta
+      properties:
+        meta:
+          $ref: '#/definitions/meta'
+definitions:
+  'meta':
+    example:
+      httpStatus: '200 - OK'
+    type: object
+    required:
+    - httpStatus
+    - requestId
+    properties:
+      httpStatus:
+        type: string
+        description: |
+          Always of the format `{X} - {Y}`,
+          where `{X}` is the associated HTTP status code,
+          and `{Y}` is a human readable explanation of the status code.
+      error:
+        type: object
+        description: Only given if an error occurred during the request.
+        required:
+        - errorMessage
+        - errorCode
+        properties:
+          errorMessage:
+            type: string
+            description: A human readable explanation of the error.
+          errorCode:
+            type: string
+            description: An identifying code associated with the error.
+      requestId:
+        type: string
+        description: A transaction id associated with the request.
+  'nextBatch':
+    example:
+      paramKey: nextBatchId
+      paramValue: PG_123456789012
+    type: object
+    required:
+    - paramKey
+    - paramValue
+    properties:
+      paramKey:
+        type: string
+        description: The query parameter name that should be used to get the next batch.
+      paramValue:
+        type: string
+        description: The query parameter value that should be used to get the next batch.
+  'listTotal':
+    example: 42
+    type: integer
+    description: The total number of items in the store.
+paths:
+  /pages/{pageId}/full:
+    get:
+      tags:
+      - full page
+      summary: Get Entire Page
+      description: Get the provided page, including properties, details, relations, etc.
+      operationId: getEntirePage
+      parameters:
+      - $ref: '#/parameters/pageIdPath'
+      responses:
+        '200':
+          description: Page Object
+          schema:
+            type: object
+            required:
+            - result
+            - meta
+            properties:
+              result:
+                $ref: 'pages.yaml#/definitions/pageFull'
+              meta:
+                $ref: '#/definitions/meta'
+  /pages:
+    get:
+      tags:
+      - page
+      summary: Get Pages
+      description: Get a paginated list of the user's pages.
+      operationId: getPages
+      parameters:
+      - $ref: '#/parameters/nextBatchIdPath'
+      responses:
+        '200':
+          description: Pages List
+          schema:
+            type: object
+            required:
+            - result
+            - meta
+            properties:
+              result:
+                type: object
+                required:
+                - batch
+                - total
+                properties:
+                  batch:
+                    $ref: 'pages.yaml#/definitions/pageList'
+                  total:
+                    $ref: '#/definitions/listTotal'
+                  nextBatch:
+                    $ref: '#/definitions/nextBatch'
+              meta:
+                $ref: '#/definitions/meta'
+    post:
+      tags:
+      - page
+      summary: Create Page
+      description: Creates a new page.
+      operationId: createPage
+      parameters:
+      - $ref: '#/parameters/pageBody'
+      responses:
+        '200':
+          description: Page ID
+          schema:
+            type: object
+            required:
+            - result
+            - meta
+            properties:
+              result:
+                type: object
+                required:
+                - id
+                properties:
+                  id:
+                    $ref: 'pages.yaml#/definitions/pageId'
+              meta:
+                $ref: '#/definitions/meta'
+  /pages/{pageId}:
+    get:
+      tags:
+      - page
+      summary: Get Page
+      description: Get the provided page.
+      operationId: getPage
+      parameters:
+      - $ref: '#/parameters/pageIdPath'
+      responses:
+        '200':
+          description: Page Object
+          schema:
+            type: object
+            required:
+            - result
+            - meta
+            properties:
+              result:
+                $ref: 'pages.yaml#/definitions/page'
+              meta:
+                $ref: '#/definitions/meta'
+    patch:
+      tags:
+      - page
+      summary: Update Page
+      description: |
+        Updates the provided page with any of the parameters provided. Anything not provided or set to empty is ignored.
+      operationId: updatePage
+      parameters:
+      - $ref: '#/parameters/pageIdPath'
+      - $ref: '#/parameters/pageBody'
+      responses:
+        '200':
+          $ref: '#/responses/success'
+    delete:
+      tags:
+      - page
+      summary: Remove Page
+      description: Removes the provided page from all queries.
+      operationId: removePage
+      parameters:
+      - $ref: '#/parameters/pageIdPath'
+      responses:
+        '200':
+          $ref: '#/responses/success'
+  /pages/{pageId}/properties:
+    get:
+      tags:
+      - page properties
+      summary: Get Page Properties
+      description: Get the provided page's properties, in order.
+      operationId: getPageProperties
+      parameters:
+      - $ref: '#/parameters/pageIdPath'
+      responses:
+        '200':
+          description: Page Properties List
+          schema:
+            type: object
+            required:
+            - result
+            - meta
+            properties:
+              result:
+                $ref: 'pages.yaml#/definitions/pagePropertyList'
+              meta:
+                $ref: '#/definitions/meta'
+    put:
+      tags:
+      - page properties
+      summary: Replace Page Properties
+      description: |
+        Replaces all current properties with the provided properties for the provided page in the provided order.
+
+        * If the current properties are equivalent to the provided properties, the new order will be used.
+        * If there are no current properties, the provided properties will be purely additive.
+        * If there are no provided properties, all current properties will be removed.
+      operationId: replacePageProperties
+      parameters:
+      - $ref: '#/parameters/pageIdPath'
+      - $ref: '#/parameters/pagePropertiesBody'
+      responses:
+        '200':
+          $ref: '#/responses/success'
+  /pages/{pageId}/details:
+    get:
+      tags:
+      - page detail
+      summary: Get Page Details
+      description: Get the provided page's details, in order.
+      operationId: getPageDetails
+      parameters:
+      - $ref: '#/parameters/pageIdPath'
+      responses:
+        '200':
+          description: Page Details List
+          schema:
+            type: object
+            required:
+            - result
+            - meta
+            properties:
+              result:
+                $ref: 'pages.yaml#/definitions/pageDetailList'
+              meta:
+                $ref: '#/definitions/meta'
+    put:
+      tags:
+      - page detail
+      summary: Reorder Page Details
+      description: Reorders the provided page's details based on the provided order.
+      operationId: reorderPageDetails
+      parameters:
+      - $ref: '#/parameters/pageIdPath'
+      - $ref: '#/parameters/pageDetailIdListBody'
+      responses:
+        '200':
+          $ref: '#/responses/success'
+    post:
+      tags:
+      - page detail
+      summary: Create Page Detail
+      description: Creates a new detail for the provided page.
+      operationId: createPageDetail
+      parameters:
+      - $ref: '#/parameters/pageIdPath'
+      - $ref: '#/parameters/pageDetailBody'
+      responses:
+        '200':
+          description: Page Detail ID
+          schema:
+            type: object
+            required:
+            - result
+            - meta
+            properties:
+              result:
+                type: object
+                required:
+                - id
+                properties:
+                  id:
+                    $ref: 'pages.yaml#/definitions/pageDetailId'
+              meta:
+                $ref: '#/definitions/meta'
+  /pages/{pageId}/details/{detailId}:
+    get:
+      tags:
+      - page detail
+      summary: Get Page Detail
+      description: Sets the provided detail for the provided page.
+      operationId: getPageDetail
+      parameters:
+      - $ref: '#/parameters/pageIdPath'
+      - $ref: '#/parameters/pageDetailIdPath'
+      responses:
+        '200':
+          description: Page Detail Object
+          schema:
+            type: object
+            required:
+            - result
+            - meta
+            properties:
+              result:
+                $ref: 'pages.yaml#/definitions/pageDetail'
+              meta:
+                $ref: '#/definitions/meta'
+    put:
+      tags:
+      - page detail
+      summary: Set Page Detail
+      description: Sets the provided detail for the provided page.
+      operationId: setPageDetail
+      parameters:
+      - $ref: '#/parameters/pageIdPath'
+      - $ref: '#/parameters/pageDetailIdPath'
+      - $ref: '#/parameters/pageDetailBody'
+      responses:
+        '200':
+          $ref: '#/responses/success'
+    delete:
+      tags:
+      - page detail
+      summary: Remove Page Detail
+      description: Removes the provided page's detail from all queries.
+      operationId: removePageDetail
+      parameters:
+      - $ref: '#/parameters/pageIdPath'
+      - $ref: '#/parameters/pageDetailIdPath'
+      responses:
+        '200':
+          $ref: '#/responses/success'
+  /properties:
+    get:
+      tags:
+      - property
+      summary: Get Properties
+      description: Gets the list of all property definitions.
+      operationId: getProperties
+      responses:
+        '200':
+          description: Properties List
+          schema:
+            type: object
+            required:
+            - result
+            - meta
+            properties:
+              result:
+                $ref: 'properties.yaml#/definitions/propertyList'
+              meta:
+                $ref: '#/definitions/meta'
+    post:
+      tags:
+      - property
+      summary: Create Property
+      description: Creates a new property.  Note that the property's key must be unique.
+      operationId: createProperty
+      parameters:
+      - $ref: '#/parameters/propertyBody'
+      responses:
+        '200':
+          $ref: '#/responses/success'
+  /properties/{propertyKey}:
+    delete:
+      tags:
+      - property
+      summary: Disable Property
+      description: Disables the provided property from showing in the list of properties. This does not remove currently used instances of the property.
+      operationId: disableProperty
+      parameters:
+      - $ref: '#/parameters/propertyKeyPath'
+      responses:
+        '200':
+          $ref: '#/responses/success'
+    post:
+      tags:
+      - property
+      summary: Enable Property
+      description: Enables the provided property to show in the list of properties.
+      operationId: enableProperty
+      parameters:
+      - $ref: '#/parameters/propertyKeyPath'
+      responses:
+        '200':
+          $ref: '#/responses/success'
+    put:
+      tags:
+      - property
+      summary: Update Property
+      description: Updates the provided property.  If the property's key inside the body is not the same as the original key, this new key will replace the old one.  The new key must be unique.
+      operationId: updateProperty
+      parameters:
+      - $ref: '#/parameters/propertyKeyPath'
+      - $ref: '#/parameters/propertyBody'
+      responses:
+        '200':
+          $ref: '#/responses/success'
+  /campaigns:
+    get:
+      tags:
+      - campaign
+      summary: Get Campaigns
+      description: Gets the list of all campaigns.
+      operationId: getCampaigns
+      responses:
+        '200':
+          description: Campaigns List
+          schema:
+            type: object
+            required:
+            - result
+            - meta
+            properties:
+              result:
+                $ref: 'campaigns.yaml#/definitions/campaignList'
+              meta:
+                $ref: '#/definitions/meta'
+    post:
+      tags:
+      - campaign
+      summary: Create Campaign
+      description: |
+        Creates a new campaign.  
+        A campaign is a grouping of notes/comments attached to specific pages to demonstrate the evolution of the page as the campaign plays out.
+      operationId: createCampaign
+      parameters:
+      - $ref: '#/parameters/campaignBody'
+      responses:
+        '200':
+          $ref: '#/responses/success'
+  /campaigns/{campaignId}:
+    delete:
+      tags:
+      - campaign
+      summary: Remove Campaign
+      description: Removes the provided campaign from all queries.
+      operationId: removeCampaign
+      parameters:
+      - $ref: '#/parameters/campaignIdPath'
+      responses:
+        '200':
+          $ref: '#/responses/success'
+    put:
+      tags:
+      - campaign
+      summary: Update Campaign
+      description: Updates the provided campaign.
+      operationId: updateCampaign
+      parameters:
+      - $ref: '#/parameters/campaignIdPath'
+      - $ref: '#/parameters/campaignBody'
+      responses:
+        '200':
+          $ref: '#/responses/success'
+  /pagetemplates:
+    get:
+      tags:
+      - page template
+      summary: Get Page Templates
+      description: Gets the list of all page templates.
+      operationId: getPageTemplates
+      responses:
+        '200':
+          description: Page Templates List
+          schema:
+            type: object
+            required:
+            - result
+            - meta
+            properties:
+              result:
+                $ref: 'pagetemplates.yaml#/definitions/pageTemplateList'
+              meta:
+                $ref: '#/definitions/meta'
+    post:
+      tags:
+      - page template
+      summary: Create Page Template
+      description: |
+        Creates a new page template.
+        A template is determines what objects a page has and any defaults values, such as property keys.
+
+        For example, the page template "settlement" may have the properties, "population", "banner", and "settlement size", "established", "location on world map".
+      operationId: createPageTemplate
+      parameters:
+      - $ref: '#/parameters/pageTemplateBody'
+      responses:
+        '200':
+          $ref: '#/responses/success'
+  /pagetemplates/{pageTemplateId}:
+    delete:
+      tags:
+      - page template
+      summary: Disable Page Template
+      description: Disables the provided page template from showing in the list of page templates. This does not remove currently used instances of the page template.
+      operationId: disablePageTemplate
+      parameters:
+      - $ref: '#/parameters/pageTemplateIdPath'
+      responses:
+        '200':
+          $ref: '#/responses/success'
+    post:
+      tags:
+      - page template
+      summary: Enable Page Template
+      description: Enables the provided page template to show in the list of page templates.
+      operationId: enablePageTemplate
+      parameters:
+      - $ref: '#/parameters/pageTemplateIdPath'
+      responses:
+        '200':
+          $ref: '#/responses/success'
+    put:
+      tags:
+      - page template
+      summary: Update Page Template
+      description: Updates the provided page template.
+      operationId: updatePageTemplate
+      parameters:
+      - $ref: '#/parameters/pageTemplateIdPath'
+      - $ref: '#/parameters/pageTemplateBody'
+      responses:
+        '200':
+          $ref: '#/responses/success'

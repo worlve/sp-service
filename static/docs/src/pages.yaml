@@ -1,0 +1,389 @@
+swagger: '2.0'
+definitions:
+  'pageFull':
+    example:
+      id: PG_123456789012
+      title: Example Page
+      summary: This is an example page.
+      version:
+        name: Default
+        id: VR_123456789012
+      pageTemplate:
+        name: Place
+        id: PGT_12345678901
+      permissionType: PR
+      properties:
+      - key: population
+        type: number
+        value: 100000
+      - key: crest
+        type: string
+        value: A lion holding a sword
+      details:
+      - id: DT_123456789012
+        title: Example Detail
+        summary: This is an example detail.
+        partitions:
+        - type: h1
+          value: This is an example header.
+        - type: p
+          partitions:
+          - type: text
+            value: This is an example regular text.
+          - type: text
+            value: It can have 
+          - type: bold
+            value: bold text, 
+          - type: italics
+            value: italics text, 
+          - type: bold
+            partitions:
+            - type: italics
+              value: even italics inside of bold text.
+            - type: link
+              value: This is an example link.
+              link: https://google.com
+            - type: relation
+              value: This is an example relation.
+              relation: PG_123456789013
+            - type: color
+              value: This is colored text, it is colored red.
+              color: #FF0000
+        - type: ul
+          items:
+          - type: text
+            value: Unordered list item 1
+          - type: text
+            value: Unordered list item 2
+        - type: ol
+          items:
+          - type: text
+            value: Ordered list item 1
+          - type: text
+            value: Ordered list item 2
+        - type: image
+          altText: alt for an image. Shown as a caption.
+          link: https://us.123rf.com/450wm/ibreaker213/ibreaker2131408/ibreaker213140800004/30989551-stock-illustration-black-horseman-castle-fantasy-black-horse-rider-with-background-castle-view-illustration-.jpg?ver=6
+        - type: hr
+        - type: quotes
+          value: This is text in a quote box.
+    type: object
+    required:
+    - id
+    - title
+    - version
+    - pageTemplate
+    - permissionType
+    properties:
+      id:
+        $ref: '#/definitions/pageId'
+      title:
+        type: string
+        description: User provided name for the page.  Does not need to be unique.
+      summary:
+        type: string
+        description: User provided summary of the page.  No more than 140 characters.
+      version:
+        $ref: 'pageversions.yaml#/definitions/pageVersion'
+      pageTemplate:
+        $ref: 'pagetemplates.yaml#/definitions/pageTemplate'
+      permissionType:
+        $ref: '#/definitions/permissionType'
+      properties:
+        type: array
+        items:
+        - $ref: '#/definitions/pageProperty'
+      details:
+        type: array
+        items:
+        - $ref: '#/definitions/pageDetail'
+  'pageList':
+    example:
+    - id: PG_123456789012
+      title: Example Page
+      versionId: VR_123456789012
+      pageTemplateId: PGT_12345678901
+      permissionType: PR
+      summary: This is an example page.
+    - id: PG_123456789013
+      title: Example Page 2
+      versionId: VR_123456789012
+      pageTemplateId: PGT_12345678901
+      permissionType: PR
+      summary: This is a second example page.
+    type: array
+    items:
+    - $ref: '#/definitions/page'
+  'page':
+    example:
+      id: PG_123456789012
+      title: Example Page
+      versionId: VR_123456789012
+      pageTemplateId: PGT_12345678901
+      permissionType: PR
+      summary: This is an example page.
+    type: object
+    required:
+    - id
+    - title
+    - pageTemplateId
+    - versionId
+    - permissionType
+    properties:
+      id:
+        $ref: '#/definitions/pageId'
+      title:
+        type: string
+        description: User provided name for the page.  Does not need to be unique.
+      summary:
+        type: string
+        description: User provided summary of the page.  No more than 140 characters.
+      versionId:
+        $ref: 'pageversions.yaml#/definitions/pageVersionId'
+      pageTemplateId:
+        $ref: 'pagetemplates.yaml#/definitions/pageTemplateId'
+      permissionType:
+        $ref: '#/definitions/permissionType'
+  'permissionType':
+    type: string
+    enum:
+    - PR
+    - PU
+    - PO
+    - LO
+    description: |
+      * **PR**: Private. Only the owner(s) may edit/see the page.
+      * **PU**: Public.  Everyone may edit/see the page and the page is searchable.
+      * **PO**: Public Only. Everyone may see the page and the page is searchable.
+      * **LO**: Link Only. Everyone may see the page, but the page is not searchable and must be given via a link.
+  'pageId':
+    type: string
+    example: PG_123456789012
+    description: |
+      The page's unique GUID.
+
+      **Example**: `PG_123456789012`
+  'pagePropertyList':
+    example:
+    - key: population
+      type: number
+      value: 100000
+    - key: crest
+      type: string
+      value: A lion holding a sword
+    type: array
+    items:
+    - $ref: '#/definitions/pageProperty'
+  'pageProperty':
+    example:
+      key: population
+      type: number
+      value: 100000
+    type: object
+    required:
+    - key
+    - type
+    properties:
+      key:
+        $ref: 'properties.yaml#/definitions/propertyKey'
+      type:
+        $ref: 'properties.yaml#/definitions/propertyType'
+      value:
+        oneOf:
+        - type: string
+        - type: integer
+  'pageDetailList':
+    example:
+    - id: DT_123456789012
+      title: Example Detail
+      summary: This is an example detail.
+      partitions:
+      - type: h1
+        value: This is an example header.
+      - type: p
+        partitions:
+        - type: text
+          value: This is an example regular text.
+        - type: text
+          value: It can have 
+        - type: bold
+          value: bold text, 
+        - type: italics
+          value: italics text, 
+        - type: bold
+          partitions:
+          - type: italics
+            value: even italics inside of bold text.
+          - type: link
+            value: This is an example link.
+            link: https://google.com
+          - type: relation
+            value: This is an example relation.
+            relation: PG_123456789013
+          - type: color
+            value: This is colored text, it is colored red.
+            color: #FF0000
+      - type: ul
+        items:
+        - type: text
+          value: Unordered list item 1
+        - type: text
+          value: Unordered list item 2
+      - type: ol
+        items:
+        - type: text
+          value: Ordered list item 1
+        - type: text
+          value: Ordered list item 2
+      - type: image
+        altText: alt for an image. Shown as a caption.
+        link: https://us.123rf.com/450wm/ibreaker213/ibreaker2131408/ibreaker213140800004/30989551-stock-illustration-black-horseman-castle-fantasy-black-horse-rider-with-background-castle-view-illustration-.jpg?ver=6
+      - type: hr
+      - type: quotes
+        value: This is text in a quote box.
+    - id: DT_123456789013
+      title: Example Detail 2
+    - id: DT_123456789011
+      title: Example Detail 3
+    type: array
+    items:
+    - $ref: '#/definitions/pageDetail'
+  'pageDetail':
+    example:
+      id: DT_123456789012
+      title: Example Detail
+      summary: This is an example detail.
+      partitions:
+      - type: h1
+        value: This is an example header.
+      - type: p
+        partitions:
+        - type: text
+          value: This is an example regular text.
+        - type: text
+          value: It can have 
+        - type: bold
+          value: bold text, 
+        - type: italics
+          value: italics text, 
+        - type: bold
+          partitions:
+          - type: italics
+            value: even italics inside of bold text.
+          - type: link
+            value: This is an example link.
+            link: https://google.com
+          - type: relation
+            value: This is an example relation.
+            relation: PG_123456789013
+          - type: color
+            value: This is colored text, it is colored red.
+            color: #FF0000
+      - type: ul
+        items:
+        - type: text
+          value: Unordered list item 1
+        - type: text
+          value: Unordered list item 2
+      - type: ol
+        items:
+        - type: text
+          value: Ordered list item 1
+        - type: text
+          value: Ordered list item 2
+      - type: image
+        altText: alt for an image. Shown as a caption.
+        link: https://us.123rf.com/450wm/ibreaker213/ibreaker2131408/ibreaker213140800004/30989551-stock-illustration-black-horseman-castle-fantasy-black-horse-rider-with-background-castle-view-illustration-.jpg?ver=6
+      - type: hr
+      - type: quotes
+        value: This is text in a quote box.
+    type: object
+    required:
+    - id
+    - title
+    properties:
+      id:
+        $ref: '#/definitions/pageDetailId'
+      title:
+        type: string
+      summary:
+        type: string
+      partitions:
+        type: array
+        items:
+        - $ref: '#/definitions/pageDetailOuterPartition'
+  'pageDetailIdList':
+    example:
+    - DT_123456789012
+    - DT_123456789013
+    - DT_123456789011
+    type: array
+    items:
+    - $ref: '#/definitions/pageDetailId'
+  'pageDetailId':
+    example: DT_123456789012
+    type: string
+    description: |
+      The detail's unique GUID.
+
+      **Example**: `DT_123456789012`
+  'pageDetailOuterPartition':
+    type: object
+    required:
+    - type
+    properties:
+      type:
+        type: string
+        enum:
+        - h1
+        - h2
+        - h3
+        - h4
+        - h5
+        - h6
+        - p
+        - ul
+        - ol
+        - image
+        - hr
+        - quotes
+      value:
+        type: string
+      partitions:
+        type: array
+        items:
+        - $ref: '#/definitions/pageDetailInnerPartition'
+      items:
+        type: array
+        items:
+        - $ref: '#/definitions/pageDetailInnerPartition'
+      altText:
+        type: string
+      link:
+        type: string
+  'pageDetailInnerPartition':
+    type: object
+    required:
+    - type
+    properties:
+      type:
+        type: string
+        enum:
+        - text
+        - bold
+        - italics
+        - link
+        - relation
+        - color
+      value:
+        type: string
+      partitions:
+        $ref: '#/definitions/pageDetailInnerPartition'
+      link:
+        type: string
+      relation:
+        type: string
+      color:
+        type: string
+        
+
