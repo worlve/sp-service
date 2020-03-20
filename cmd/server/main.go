@@ -7,15 +7,16 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/rs/cors"
 	"github.com/worlve/sp-service/internal/api"
 	healthcheckhandler "github.com/worlve/sp-service/internal/api/handlers/healthcheck"
 	pagehandler "github.com/worlve/sp-service/internal/api/handlers/page"
+	pagedetailhandler "github.com/worlve/sp-service/internal/api/handlers/pagedetail"
 	healthcheckservice "github.com/worlve/sp-service/internal/services/healthcheck"
 	pageservice "github.com/worlve/sp-service/internal/services/page"
+	pagedetailservice "github.com/worlve/sp-service/internal/services/pagedetail"
 	"github.com/worlve/sp-service/internal/stores/mysqlstore"
 	"github.com/worlve/sp-service/internal/util/env"
-
-	"github.com/rs/cors"
 )
 
 const localUIURL = "http://127.0.0.1:8081"
@@ -98,11 +99,15 @@ func setupHandler(apiPath, staticPath, datacenter string, mysqldb *sql.DB) (http
 		VersionStore:      versionStore,
 		UserStore:         userStore,
 	}
+	pageDetailService := pagedetailservice.PageDetailService{
+		PageDetailStore: pageDetailStore,
+	}
 	healthcheckService := healthcheckservice.HealthcheckService{
 		HealthcheckStore: healthcheckStore,
 	}
 	var routerHandlers []api.RouterHandler
 	routerHandlers = append(routerHandlers, pagehandler.PageRouterHandlers(apiPath, pageService)...)
+	routerHandlers = append(routerHandlers, pagedetailhandler.PageDetailRouterHandlers(apiPath, pageDetailService)...)
 	routerHandlers = append(routerHandlers, healthcheckhandler.HealthcheckRouterHandlers(apiPath, healthcheckService)...)
 	router := api.NewRouter(apiPath, staticPath, routerHandlers)
 	authN, authZ, err := getAuths(apiPath, datacenter)
